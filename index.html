@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Doraemon Catch the Cake!</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 
@@ -15,24 +15,26 @@
     --dora-scale: 1;
     --parallax-speed: 60s;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    height: 100vh;
-    overflow: hidden;
-    background: #87CEEB;
-    font-family: 'Fredoka One', cursive;
+  
+  * { 
+    margin:0; padding:0; box-sizing:border-box; 
+    -webkit-tap-highlight-color: transparent; 
+    user-select: none;
   }
 
-  /* Parallax Background */
-  @keyframes skyScroll {
-    from { background-position: 0 0; }
-    to { background-position: 1000px 0; }
+  body {
+    height: 100svh; 
+    width: 100vw;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Fredoka One', cursive;
+    position: fixed;
   }
 
   #game {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: calc(100svh - env(safe-area-inset-bottom));
     background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
     background-image: url('background.jpg');
     background-size: cover;
@@ -43,7 +45,69 @@
     overflow: hidden;
   }
 
-  /* --- ANIMATIONS --- */
+  @keyframes skyScroll {
+    from { background-position: 0 0; }
+    to { background-position: 1000px 0; }
+  }
+
+  #score {
+    position: absolute;
+    top: calc(20px + env(safe-area-inset-top)); 
+    left: 20px;
+    color: var(--dora-white); font-size: 26px;
+    background: rgba(0, 150, 217, 0.7);
+    padding: 8px 16px; border-radius: 50px;
+    border: 3px solid var(--dora-white);
+    z-index: 30;
+  }
+
+  #doraemon {
+    position: absolute;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    width: 80px; height: 80px;
+    pointer-events: none;
+    z-index: 10;
+    transform-origin: bottom center;
+  }
+
+  /* --- VISIBLE BUTTONS --- */
+  .controls { position: absolute; inset: 0; z-index: 15; }
+  
+  .side { 
+    position: absolute; 
+    width: 50%; height: 100%; 
+    top: 0; 
+    display: flex;
+    align-items: flex-end; /* Put arrows at the bottom */
+    justify-content: center;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  }
+  
+  #left { left: 0; } 
+  #right { right: 0; }
+
+  .arrow-hint {
+    font-size: 50px;
+    color: white;
+    opacity: 0.9; /* Subtle and non-distracting */
+    background: rgba(0, 0, 0, 0.1);
+    width: 70px; height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid white;
+    transition: all 0.1s;
+  }
+
+  /* Pulse effect when pressed */
+  .side:active .arrow-hint {
+    opacity: 0.6;
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* --- ANIMATIONS & PARTICLES --- */
   @keyframes gulp {
     0% { transform: translateX(-50%) scaleX(var(--dora-scale)) scaleY(1); }
     50% { transform: translateX(-50%) scaleX(calc(var(--dora-scale) * 1.2)) scaleY(1.2) translateY(-15px); }
@@ -51,7 +115,6 @@
   }
   .eating { animation: gulp 0.3s ease-in-out; }
 
-  /* Golden Glow (Aura) */
   @keyframes auraFlash {
     0% { filter: drop-shadow(0 0 0px var(--dora-yellow)); }
     50% { filter: drop-shadow(0 0 25px var(--dora-yellow)) brightness(1.2); }
@@ -59,7 +122,6 @@
   }
   .super-catch { animation: auraFlash 0.5s ease-out; }
 
-  /* Particles (Heart Burst) */
   .particle {
     position: absolute;
     pointer-events: none;
@@ -72,30 +134,9 @@
     100% { transform: translateY(-100px) translateX(var(--random-x)) scale(0.5); opacity: 0; }
   }
 
-  #score {
-    position: absolute;
-    top: 20px; left: 20px;
-    color: var(--dora-white); font-size: 32px;
-    background: rgba(0, 150, 217, 0.7);
-    padding: 10px 20px; border-radius: 50px;
-    border: 3px solid var(--dora-white);
-    z-index: 30;
-  }
-
-  #doraemon {
-    position: absolute;
-    bottom: 40px;
-    width: 90px; height: 90px;
-    pointer-events: none;
-    z-index: 10;
-    transition: left 0.1s ease-out; 
-    transform-origin: bottom center;
-    transform: translateX(-50%) scaleX(var(--dora-scale));
-  }
-
   .cake {
     position: absolute;
-    width: 60px; height: 60px;
+    width: 50px; height: 50px;
     pointer-events: none;
     z-index: 5;
   }
@@ -108,13 +149,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.4s;
     z-index: 100;
     color: white;
   }
   
   #startScreen { z-index: 200; }
-  #gameover { opacity: 0; pointer-events: none; }
+  #gameover { display: none; }
 
   .card {
     background: var(--dora-white);
@@ -126,23 +166,17 @@
     width: 85%; max-width: 400px;
     box-shadow: 0 10px 0 var(--dora-red);
   }
-  .card h1 { color: var(--dora-blue); font-size: 36px; margin-bottom: 10px; }
-  .card p { font-size: 18px; margin-bottom: 15px; color: #666; }
+  .card h1 { color: var(--dora-blue); font-size: 30px; margin-bottom: 10px; }
+  .card p { font-size: 16px; margin-bottom: 15px; color: #666; }
 
   .action-btn {
     background: var(--dora-yellow);
     color: #333; border: none;
-    padding: 15px 30px; font-size: 24px;
+    padding: 12px 24px; font-size: 20px;
     font-family: 'Fredoka One', cursive;
     border-radius: 50px; cursor: pointer;
     box-shadow: 0 5px 0 #b7a500;
-    margin-top: 5px;
   }
-  .action-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b7a500; }
-
-  .controls { position: absolute; inset: 0; z-index: 15; }
-  .side { position: absolute; width: 50%; height: 100%; top: 0; }
-  #left { left: 0; } #right { right: 0; }
 </style>
 </head>
 <body>
@@ -152,14 +186,14 @@
   <img id="doraemon" src="doraemon.png" alt="Doraemon">
 
   <div class="controls">
-    <div class="side" id="left"></div>
-    <div class="side" id="right"></div>
+    <div class="side" id="left"><div class="arrow-hint">←</div></div>
+    <div class="side" id="right"><div class="arrow-hint">→</div></div>
   </div>
 
   <div id="startScreen" class="screen-overlay">
     <div class="card">
       <h1>Doraemon's Cake Chase!</h1>
-      <p>Tap left or right to help Doraemon catch his favorite snack!</p>
+      <p>Tap the arrows to move.<br>Don't let cakes hit the floor!</p>
       <button id="startBtn" class="action-btn">START GAME</button>
     </div>
   </div>
@@ -167,7 +201,7 @@
   <div id="gameover" class="screen-overlay">
     <div class="card">
       <h1>OH NO!</h1>
-      <p>Doraemon missed a cake!</p>
+      <p>A cake hit the ground!</p>
       <div id="finalScore" style="font-size: 32px; margin: 15px 0; color: var(--dora-red);">Score: 0</div>
       <button class="action-btn" onclick="location.reload()">RESTART</button>
     </div>
@@ -175,14 +209,13 @@
 </div>
 
 <script>
-// --- AUDIO ENGINE (No files needed!) ---
+// --- AUDIO ENGINE ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(type) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
   gain.connect(audioCtx.destination);
-  
   if(type === 'pop') {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(400, audioCtx.currentTime);
@@ -200,7 +233,6 @@ function playSound(type) {
   }
 }
 
-// --- GAME LOGIC ---
 const game = document.getElementById('game');
 const doraemon = document.getElementById('doraemon');
 const scoreEl = document.getElementById('score');
@@ -215,21 +247,15 @@ let cakes = [];
 let doraemonX = window.innerWidth / 2;
 let facingScale = 1;
 let currentFallingSpeed = 5;
-let spawnRate = 1200;
 let spawnInterval;
 
 startBtn.addEventListener('click', () => {
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  startGame();
+  gameActive = true;
+  startScreenEl.style.display = 'none';
+  spawnInterval = setInterval(spawnCake, 1200);
+  gameLoop();
 });
-
-function startGame() {
-    gameActive = true;
-    startScreenEl.style.opacity = '0';
-    setTimeout(() => { startScreenEl.style.display = 'none'; }, 400);
-    spawnInterval = setInterval(spawnCake, spawnRate);
-    gameLoop();
-}
 
 function spawnParticles(count, isSuper) {
   const dRect = doraemon.getBoundingClientRect();
@@ -263,72 +289,63 @@ function gameLoop() {
       const cake = cakes[i];
       cake.currentY += currentFallingSpeed;
       cake.style.top = cake.currentY + 'px';
-
       const cRect = cake.getBoundingClientRect();
       const dRect = doraemon.getBoundingClientRect();
 
       if (cRect.bottom > dRect.top + 15 && cRect.top < dRect.bottom &&
           cRect.right > dRect.left + 15 && cRect.left < dRect.right - 15) {
         
-        // CATCH LOGIC
-        const isSuper = Math.random() > 0.8; // 20% chance
+        const isSuper = Math.random() > 0.8;
         doraemon.classList.add('eating');
-        
         if(isSuper) {
           doraemon.classList.add('super-catch');
-          playSound('sparkle');
-          spawnParticles(6, true);
+          playSound('sparkle'); spawnParticles(6, true);
           setTimeout(() => doraemon.classList.remove('super-catch'), 500);
         } else {
-          playSound('pop');
-          spawnParticles(3, false);
+          playSound('pop'); spawnParticles(3, false);
         }
-
         score++;
         scoreEl.innerText = "Cakes: " + score;
-        
-        // INCREASE SPEED EVERY 10 CAKES
         if (score % 10 === 0) {
           currentFallingSpeed += 0.8;
-          // Speed up parallax
           const currentSec = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--parallax-speed'));
           document.documentElement.style.setProperty('--parallax-speed', (currentSec * 0.9) + 's');
         }
-
         cake.remove();
         cakes.splice(i, 1);
         continue;
       }
-
-      if (cake.currentY > game.clientHeight) endGame();
+      if (cake.currentY > game.clientHeight) {
+        gameActive = false;
+        clearInterval(spawnInterval);
+        gameoverEl.style.display = 'flex';
+        gameoverEl.style.opacity = '1';
+        gameoverEl.style.pointerEvents = 'all';
+        finalScoreEl.innerText = "Score: " + score;
+      }
     }
   }
   requestAnimationFrame(gameLoop);
 }
 
-function endGame() {
-  gameActive = false;
-  clearInterval(spawnInterval);
-  gameoverEl.style.opacity = '1';
-  gameoverEl.style.pointerEvents = 'all';
-  finalScoreEl.innerText = "Score: " + score;
-}
+let moveLeft = false, moveRight = false;
+const stopMove = (e) => { if(e) e.preventDefault(); moveLeft = false; moveRight = false; };
 
-// --- Controls ---
-let moveLeft = false; let moveRight = false;
-const startL = (e) => { e.preventDefault(); moveLeft = true; facingScale = 1; };
-const startR = (e) => { e.preventDefault(); moveRight = true; facingScale = -1; };
-const stop = () => { moveLeft = false; moveRight = false; };
+const leftSide = document.getElementById('left');
+const rightSide = document.getElementById('right');
 
-document.getElementById('left').onpointerdown = startL;
-document.getElementById('right').onpointerdown = startR;
-window.onpointerup = stop;
+leftSide.addEventListener('pointerdown', (e) => { e.preventDefault(); moveLeft = true; facingScale = 1; });
+rightSide.addEventListener('pointerdown', (e) => { e.preventDefault(); moveRight = true; facingScale = -1; });
+window.addEventListener('pointerup', stopMove);
+window.addEventListener('pointercancel', stopMove);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') { moveLeft = true; facingScale = 1; }
   if (e.key === 'ArrowRight') { moveRight = true; facingScale = -1; }
 });
-window.addEventListener('keyup', stop);
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') stopMove();
+});
 
 doraemon.addEventListener('animationend', (e) => {
     if(e.animationName === 'gulp') doraemon.classList.remove('eating');
@@ -336,17 +353,22 @@ doraemon.addEventListener('animationend', (e) => {
 
 setInterval(() => {
   if (!gameActive) return;
-  if (moveLeft) doraemonX -= 14;
-  if (moveRight) doraemonX += 14;
+  const speed = 14;
+  const dWidth = doraemon.offsetWidth;
+  const gameWidth = game.clientWidth;
+  if (moveLeft) doraemonX -= speed;
+  if (moveRight) doraemonX += speed;
+  if (doraemonX < dWidth/2) doraemonX = dWidth/2;
+  if (doraemonX > gameWidth - dWidth/2) doraemonX = gameWidth - dWidth/2;
   
   document.documentElement.style.setProperty('--dora-scale', facingScale);
   doraemon.style.left = doraemonX + 'px';
-  if (!doraemon.classList.contains('eating')) {
-      doraemon.style.transform = `translateX(-50%) scaleX(${facingScale})`;
-  }
+  doraemon.style.transform = `translateX(-50%) scaleX(${facingScale})`;
 }, 16);
 
-doraemon.style.left = doraemonX + 'px';
+window.addEventListener('resize', () => { 
+  if(!gameActive) doraemonX = window.innerWidth / 2; 
+});
 </script>
 </body>
 </html>
